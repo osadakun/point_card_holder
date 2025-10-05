@@ -14,21 +14,25 @@ class PointCard extends HiveObject {
   String? barcode;
 
   @HiveField(3)
-  String? notes;
+  String? barcodeFormat;
 
   @HiveField(4)
-  DateTime createdAt;
+  String? notes;
 
   @HiveField(5)
-  DateTime updatedAt;
+  DateTime createdAt;
 
   @HiveField(6)
+  DateTime updatedAt;
+
+  @HiveField(7)
   int order;
 
   PointCard({
     required this.id,
     required this.name,
     this.barcode,
+    this.barcodeFormat,
     this.notes,
     required this.createdAt,
     required this.updatedAt,
@@ -38,6 +42,7 @@ class PointCard extends HiveObject {
   factory PointCard.create({
     required String name,
     String? barcode,
+    String? barcodeFormat,
     String? notes,
     int order = 0,
   }) {
@@ -46,6 +51,7 @@ class PointCard extends HiveObject {
       id: now.millisecondsSinceEpoch.toString(),
       name: name,
       barcode: barcode,
+      barcodeFormat: barcodeFormat,
       notes: notes,
       createdAt: now,
       updatedAt: now,
@@ -56,10 +62,12 @@ class PointCard extends HiveObject {
   void update({
     String? name,
     String? barcode,
+    String? barcodeFormat,
     String? notes,
   }) {
     if (name != null) this.name = name;
     if (barcode != null) this.barcode = barcode;
+    if (barcodeFormat != null) this.barcodeFormat = barcodeFormat;
     if (notes != null) this.notes = notes;
     updatedAt = DateTime.now();
   }
