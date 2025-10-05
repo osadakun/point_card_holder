@@ -127,34 +127,7 @@ class CardDetailScreen extends StatelessWidget {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: BarcodeWidget(
-                        barcode: Barcode.code128(),
-                        data: card.barcode!,
-                        height: 100,
-                        drawText: true,
-                        errorBuilder: (context, error) {
-                          // Code128が失敗した場合はQRコードを試す
-                          return BarcodeWidget(
-                            barcode: Barcode.qrCode(),
-                            data: card.barcode!,
-                            width: 200,
-                            height: 200,
-                            errorBuilder: (context, error) {
-                              // 全て失敗した場合はテキスト表示
-                              return Center(
-                                child: Text(
-                                  card.barcode!,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    fontFamily: 'monospace',
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
+                      child: _buildBarcodeWidget(),
                     ),
                     const SizedBox(height: 8),
                     Center(
@@ -227,5 +200,99 @@ class CardDetailScreen extends StatelessWidget {
 
   String _formatDate(DateTime date) {
     return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
+  }
+
+  Widget _buildBarcodeWidget() {
+    // バーコード形式に応じて適切なBarcodeタイプを選択
+    Barcode barcodeType;
+    double height = 100;
+    double? width;
+
+    switch (card.barcodeFormat?.toLowerCase()) {
+      case 'qrcode':
+      case 'qr_code':
+        barcodeType = Barcode.qrCode();
+        height = 200;
+        width = 200;
+        break;
+      case 'ean13':
+      case 'ean_13':
+        barcodeType = Barcode.ean13();
+        break;
+      case 'ean8':
+      case 'ean_8':
+        barcodeType = Barcode.ean8();
+        break;
+      case 'code39':
+      case 'code_39':
+        barcodeType = Barcode.code39();
+        break;
+      case 'code93':
+      case 'code_93':
+        barcodeType = Barcode.code93();
+        break;
+      case 'code128':
+      case 'code_128':
+        barcodeType = Barcode.code128();
+        break;
+      case 'itf':
+      case 'itf14':
+        barcodeType = Barcode.itf14();
+        break;
+      case 'upc_a':
+      case 'upca':
+        barcodeType = Barcode.upcA();
+        break;
+      case 'upc_e':
+      case 'upce':
+        barcodeType = Barcode.upcE();
+        break;
+      default:
+        // デフォルトはCode128、失敗したらQRコード
+        barcodeType = Barcode.code128();
+    }
+
+    return BarcodeWidget(
+      barcode: barcodeType,
+      data: card.barcode!,
+      height: height,
+      width: width,
+      drawText: true,
+      errorBuilder: (context, error) {
+        // 最初の形式が失敗した場合はQRコードを試す
+        if (barcodeType != Barcode.qrCode()) {
+          return BarcodeWidget(
+            barcode: Barcode.qrCode(),
+            data: card.barcode!,
+            width: 200,
+            height: 200,
+            errorBuilder: (context, error) {
+              // 全て失敗した場合はテキスト表示
+              return Center(
+                child: Text(
+                  card.barcode!,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              );
+            },
+          );
+        }
+        // QRコードも失敗した場合はテキスト表示
+        return Center(
+          child: Text(
+            card.barcode!,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'monospace',
+            ),
+          ),
+        );
+      },
+    );
   }
 }

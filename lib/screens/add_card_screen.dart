@@ -45,6 +45,8 @@ class _AddCardScreenState extends State<AddCardScreen> {
     });
   }
 
+  String? _detectedBarcodeFormat;
+
   void _onDetect(BarcodeCapture barcodeCapture) {
     final List<Barcode> barcodes = barcodeCapture.barcodes;
     if (barcodes.isNotEmpty) {
@@ -52,10 +54,11 @@ class _AddCardScreenState extends State<AddCardScreen> {
       if (barcode.rawValue != null) {
         setState(() {
           _barcodeController.text = barcode.rawValue!;
+          _detectedBarcodeFormat = barcode.format.name;
         });
         _stopQRScan();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('QRコードを読み取りました')),
+          const SnackBar(content: Text('バーコードを読み取りました')),
         );
       }
     }
@@ -72,6 +75,9 @@ class _AddCardScreenState extends State<AddCardScreen> {
         name: _nameController.text,
         barcode: _barcodeController.text.isNotEmpty
             ? _barcodeController.text
+            : null,
+        barcodeFormat: _barcodeController.text.isNotEmpty
+            ? _detectedBarcodeFormat
             : null,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
         order: maxOrder + 1,

@@ -25,6 +25,7 @@ class _EditCardScreenState extends State<EditCardScreen> {
 
   bool _isScanning = false;
   MobileScannerController? _scannerController;
+  String? _detectedBarcodeFormat;
 
   @override
   void initState() {
@@ -65,10 +66,11 @@ class _EditCardScreenState extends State<EditCardScreen> {
       if (barcode.rawValue != null) {
         setState(() {
           _barcodeController.text = barcode.rawValue!;
+          _detectedBarcodeFormat = barcode.format.name;
         });
         _stopQRScan();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('QRコードを読み取りました')),
+          const SnackBar(content: Text('バーコードを読み取りました')),
         );
       }
     }
@@ -80,6 +82,9 @@ class _EditCardScreenState extends State<EditCardScreen> {
         name: _nameController.text,
         barcode: _barcodeController.text.isNotEmpty
             ? _barcodeController.text
+            : null,
+        barcodeFormat: _barcodeController.text.isNotEmpty
+            ? _detectedBarcodeFormat
             : null,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
       );

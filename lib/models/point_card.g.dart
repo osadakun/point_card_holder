@@ -20,17 +20,18 @@ class PointCardAdapter extends TypeAdapter<PointCard> {
       id: fields[0] as String,
       name: fields[1] as String,
       barcode: fields[2] as String?,
-      notes: fields[3] as String?,
-      createdAt: fields[4] as DateTime,
-      updatedAt: fields[5] as DateTime,
-      order: fields[6] as int,
+      barcodeFormat: fields[3] as String?,
+      notes: fields[4] as String?,
+      createdAt: fields[5] as DateTime,
+      updatedAt: fields[6] as DateTime,
+      order: fields[7] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, PointCard obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -38,12 +39,14 @@ class PointCardAdapter extends TypeAdapter<PointCard> {
       ..writeByte(2)
       ..write(obj.barcode)
       ..writeByte(3)
-      ..write(obj.notes)
+      ..write(obj.barcodeFormat)
       ..writeByte(4)
-      ..write(obj.createdAt)
+      ..write(obj.notes)
       ..writeByte(5)
-      ..write(obj.updatedAt)
+      ..write(obj.createdAt)
       ..writeByte(6)
+      ..write(obj.updatedAt)
+      ..writeByte(7)
       ..write(obj.order);
   }
 
