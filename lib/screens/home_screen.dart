@@ -25,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: ValueListenableBuilder(
         valueListenable: widget.storageService.box.listenable(),
         builder: (context, Box<PointCard> box, _) {
-          final cards = box.values.toList();
+          final cards = widget.storageService.getAllPointCards();
 
           if (cards.isEmpty) {
             return const Center(
@@ -52,12 +52,21 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           }
 
-          return ListView.builder(
+          return ReorderableListView.builder(
             itemCount: cards.length,
             padding: const EdgeInsets.all(8),
+            onReorder: (oldIndex, newIndex) async {
+              if (oldIndex < newIndex) {
+                newIndex -= 1;
+              }
+              final card = cards.removeAt(oldIndex);
+              cards.insert(newIndex, card);
+              await widget.storageService.reorderPointCards(cards);
+            },
             itemBuilder: (context, index) {
               final card = cards[index];
               return Card(
+                key: ValueKey(card.id),
                 margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                 child: ListTile(
                   leading: const Icon(
@@ -79,7 +88,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           overflow: TextOverflow.ellipsis,
                         )
                       : null,
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.drag_handle, color: Colors.grey),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.arrow_forward_ios, size: 16),
+                    ],
+                  ),
                   onTap: () {
                     Navigator.push(
                       context,

@@ -64,7 +64,16 @@ class StorageService {
   }
 
   List<PointCard> getAllPointCards() {
-    return box.values.toList();
+    final cards = box.values.toList();
+    cards.sort((a, b) => a.order.compareTo(b.order));
+    return cards;
+  }
+
+  Future<void> reorderPointCards(List<PointCard> cards) async {
+    for (int i = 0; i < cards.length; i++) {
+      cards[i].order = i;
+      await updatePointCard(cards[i]);
+    }
   }
 
   Future<void> close() async {

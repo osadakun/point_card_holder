@@ -22,6 +22,9 @@ class PointCard extends HiveObject {
   @HiveField(5)
   DateTime updatedAt;
 
+  @HiveField(6)
+  int order;
+
   PointCard({
     required this.id,
     required this.name,
@@ -29,12 +32,14 @@ class PointCard extends HiveObject {
     this.notes,
     required this.createdAt,
     required this.updatedAt,
+    this.order = 0,
   });
 
   factory PointCard.create({
     required String name,
     String? barcode,
     String? notes,
+    int order = 0,
   }) {
     final now = DateTime.now();
     return PointCard(
@@ -44,6 +49,7 @@ class PointCard extends HiveObject {
       notes: notes,
       createdAt: now,
       updatedAt: now,
+      order: order,
     );
   }
 

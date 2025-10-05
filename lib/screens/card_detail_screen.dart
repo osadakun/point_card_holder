@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:barcode_widget/barcode_widget.dart';
 import '../models/point_card.dart';
 import '../services/storage_service.dart';
+import 'edit_card_screen.dart';
 
 class CardDetailScreen extends StatelessWidget {
   final PointCard card;
@@ -53,6 +54,21 @@ class CardDetailScreen extends StatelessWidget {
         title: Text(card.name),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => EditCardScreen(
+                    card: card,
+                    storageService: storageService,
+                  ),
+                ),
+              );
+            },
+            tooltip: '編集',
+          ),
           IconButton(
             icon: const Icon(Icons.delete),
             onPressed: () => _deleteCard(context),

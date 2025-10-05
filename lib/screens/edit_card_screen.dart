@@ -3,23 +3,36 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../models/point_card.dart';
 import '../services/storage_service.dart';
 
-class AddCardScreen extends StatefulWidget {
+class EditCardScreen extends StatefulWidget {
+  final PointCard card;
   final StorageService storageService;
 
-  const AddCardScreen({super.key, required this.storageService});
+  const EditCardScreen({
+    super.key,
+    required this.card,
+    required this.storageService,
+  });
 
   @override
-  State<AddCardScreen> createState() => _AddCardScreenState();
+  State<EditCardScreen> createState() => _EditCardScreenState();
 }
 
-class _AddCardScreenState extends State<AddCardScreen> {
+class _EditCardScreenState extends State<EditCardScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _barcodeController = TextEditingController();
-  final _notesController = TextEditingController();
+  late final TextEditingController _nameController;
+  late final TextEditingController _barcodeController;
+  late final TextEditingController _notesController;
 
   bool _isScanning = false;
   MobileScannerController? _scannerController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.card.name);
+    _barcodeController = TextEditingController(text: widget.card.barcode ?? '');
+    _notesController = TextEditingController(text: widget.card.notes ?? '');
+  }
 
   @override
   void dispose() {
@@ -63,25 +76,19 @@ class _AddCardScreenState extends State<AddCardScreen> {
 
   Future<void> _saveCard() async {
     if (_formKey.currentState!.validate()) {
-      final existingCards = widget.storageService.getAllPointCards();
-      final maxOrder = existingCards.isEmpty
-          ? 0
-          : existingCards.map((c) => c.order).reduce((a, b) => a > b ? a : b);
-
-      final card = PointCard.create(
+      widget.card.update(
         name: _nameController.text,
         barcode: _barcodeController.text.isNotEmpty
             ? _barcodeController.text
             : null,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
-        order: maxOrder + 1,
       );
 
-      await widget.storageService.addPointCard(card);
+      await widget.storageService.updatePointCard(widget.card);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ポイントカードを登録しました')),
+          const SnackBar(content: Text('ポイントカードを更新しました')),
         );
         Navigator.pop(context);
       }
@@ -92,7 +99,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ポイントカード登録'),
+        title: const Text('ポイントカード編集'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: _isScanning ? _buildQRScanView() : _buildFormView(),
@@ -178,7 +185,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
               child: const Text(
-                '登録',
+                '保存',
                 style: TextStyle(fontSize: 16),
               ),
             ),
