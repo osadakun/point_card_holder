@@ -51,6 +51,10 @@ class _AddCardScreenState extends State<AddCardScreen> {
     final List<Barcode> barcodes = barcodeCapture.barcodes;
     if (barcodes.isNotEmpty) {
       final barcode = barcodes.first;
+      // QRコードを除外（バーコードのみ受け付ける）
+      if (barcode.format.name.toLowerCase().contains('qr')) {
+        return;
+      }
       if (barcode.rawValue != null) {
         setState(() {
           _barcodeController.text = barcode.rawValue!;
@@ -58,7 +62,9 @@ class _AddCardScreenState extends State<AddCardScreen> {
         });
         _stopQRScan();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('バーコードを読み取りました')),
+          SnackBar(
+            content: Text('バーコードを読み取りました (${barcode.format.name})'),
+          ),
         );
       }
     }
@@ -71,14 +77,18 @@ class _AddCardScreenState extends State<AddCardScreen> {
           ? 0
           : existingCards.map((c) => c.order).reduce((a, b) => a > b ? a : b);
 
+      // バーコードが存在する場合、フォーマットも保持する
+      final barcodeValue = _barcodeController.text.isNotEmpty
+          ? _barcodeController.text
+          : null;
+      final formatValue = barcodeValue != null
+          ? _detectedBarcodeFormat
+          : null;
+
       final card = PointCard.create(
         name: _nameController.text,
-        barcode: _barcodeController.text.isNotEmpty
-            ? _barcodeController.text
-            : null,
-        barcodeFormat: _barcodeController.text.isNotEmpty
-            ? _detectedBarcodeFormat
-            : null,
+        barcode: barcodeValue,
+        barcodeFormat: formatValue,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
         order: maxOrder + 1,
       );
@@ -111,6 +121,49 @@ class _AddCardScreenState extends State<AddCardScreen> {
         MobileScanner(
           controller: _scannerController!,
           onDetect: _onDetect,
+        ),
+        // 暗いオーバーレイ
+        Container(
+          color: Colors.black.withOpacity(0.5),
+        ),
+        // バーコード読み取りフレーム
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'バーコードを枠内に合わせてください',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                width: 300,
+                height: 150,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.green, width: 3),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    color: Colors.transparent,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                '※ QRコードは読み取れません',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
         ),
         Positioned(
           bottom: 20,

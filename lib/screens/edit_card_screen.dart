@@ -33,6 +33,8 @@ class _EditCardScreenState extends State<EditCardScreen> {
     _nameController = TextEditingController(text: widget.card.name);
     _barcodeController = TextEditingController(text: widget.card.barcode ?? '');
     _notesController = TextEditingController(text: widget.card.notes ?? '');
+    // 既存のバーコードフォーマットを保持
+    _detectedBarcodeFormat = widget.card.barcodeFormat;
   }
 
   @override
@@ -63,6 +65,10 @@ class _EditCardScreenState extends State<EditCardScreen> {
     final List<Barcode> barcodes = barcodeCapture.barcodes;
     if (barcodes.isNotEmpty) {
       final barcode = barcodes.first;
+      // QRコードを除外（バーコードのみ受け付ける）
+      if (barcode.format.name.toLowerCase().contains('qr')) {
+        return;
+      }
       if (barcode.rawValue != null) {
         setState(() {
           _barcodeController.text = barcode.rawValue!;
@@ -70,7 +76,9 @@ class _EditCardScreenState extends State<EditCardScreen> {
         });
         _stopQRScan();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('バーコードを読み取りました')),
+          SnackBar(
+            content: Text('バーコードを読み取りました (${barcode.format.name})'),
+          ),
         );
       }
     }
@@ -78,14 +86,19 @@ class _EditCardScreenState extends State<EditCardScreen> {
 
   Future<void> _saveCard() async {
     if (_formKey.currentState!.validate()) {
+      // バーコードが存在する場合、フォーマットも保持する
+      // バーコードが削除された場合、フォーマットもnullにする
+      final barcodeValue = _barcodeController.text.isNotEmpty
+          ? _barcodeController.text
+          : null;
+      final formatValue = barcodeValue != null
+          ? _detectedBarcodeFormat
+          : null;
+
       widget.card.update(
         name: _nameController.text,
-        barcode: _barcodeController.text.isNotEmpty
-            ? _barcodeController.text
-            : null,
-        barcodeFormat: _barcodeController.text.isNotEmpty
-            ? _detectedBarcodeFormat
-            : null,
+        barcode: barcodeValue,
+        barcodeFormat: formatValue,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
       );
 
@@ -117,6 +130,49 @@ class _EditCardScreenState extends State<EditCardScreen> {
         MobileScanner(
           controller: _scannerController!,
           onDetect: _onDetect,
+        ),
+        // 暗いオーバーレイ
+        Container(
+          color: Colors.black.withOpacity(0.5),
+        ),
+        // バーコード読み取りフレーム
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'バーコードを枠内に合わせてください',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                width: 300,
+                height: 150,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.green, width: 3),
+                  borderRadius: BorderRadius.circular(12),
+                  ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    color: Colors.transparent,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                '※ QRコードは読み取れません',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
         ),
         Positioned(
           bottom: 20,
